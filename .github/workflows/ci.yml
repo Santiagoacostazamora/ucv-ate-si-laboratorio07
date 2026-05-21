@@ -1,21 +1,27 @@
-name: CI Pipeline
+name: CI & SonarQube Pipeline
 
 on:
-  pull_request:
+  push:
     branches:
       - develop
-      - main
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - develop
 
 jobs:
-  quality-check:
-
+  quality-check-and-scan:
+    name: Quality Checks & SonarQube
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  
 
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
@@ -30,3 +36,8 @@ jobs:
 
       - name: Run Tests
         run: poetry run pytest
+
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@7006c4492b2e0ee0f816d36501671557c97f5995
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
